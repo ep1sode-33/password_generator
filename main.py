@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QTextEdit, QMessageBox
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QTextEdit, QMessageBox, QCheckBox
 from PyQt5.QtCore import pyqtSlot
 import string
 import random
@@ -19,11 +19,13 @@ class PasswordGenerator(QWidget):
         self.label = QLabel('Enter the desired password length (6-100):')
         self.lineEdit = QLineEdit(self)
         self.generateButton = QPushButton('Generate Password')
+        self.configModeCheckbox = QCheckBox('Configuration File / Command Line Mode')
         self.resultText = QTextEdit(self)
         self.resultText.setReadOnly(True)
 
         layout.addWidget(self.label)
         layout.addWidget(self.lineEdit)
+        layout.addWidget(self.configModeCheckbox)
         layout.addWidget(self.generateButton)
         layout.addWidget(self.resultText)
 
@@ -39,11 +41,16 @@ class PasswordGenerator(QWidget):
             QMessageBox.warning(self, "Input Error", "Please enter a valid integer, length between 6 and 100.", QMessageBox.Ok, QMessageBox.Ok)
             return
         length = int(input_text)
-        password = self.generate_password(length)
+        password = self.generate_password(length, self.configModeCheckbox.isChecked())
         self.resultText.setText(password)
 
-    def generate_password(self, length):
-        characters = string.ascii_letters + string.digits + string.punctuation
+    def generate_password(self, length, configMode):
+        if configMode:
+            # For configuration files, avoid characters that often require escaping
+            characters = string.ascii_letters + string.digits + "-_"
+        else:
+            # Include all characters for command line use
+            characters = string.ascii_letters + string.digits + string.punctuation
         password = ''.join(random.choice(characters) for _ in range(length))
         return password
 
